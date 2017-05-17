@@ -1,0 +1,91 @@
+[% extra_js = [
+    version('/vendor/moment.min.js'),
+    version('/vendor/chart.min.js'),
+    version('/cobrands/fixmystreet.com/dashboard.js')
+] -%]
+[% INCLUDE 'header.html', title = loc('Dashboard'), bodyclass => 'dashboard fullwidthpage' %]
+
+<div class="dashboard-header">
+    <h1>[% loc('Dashboard') %]</h1>
+</div>
+
+<div class="dashboard-row">
+    <div class="dashboard-item dashboard-item--12">
+        <h2>UK: All time</h2>
+        <div class="labelled-line-chart">
+            <canvas id="chart-all-reports" width="600" height="300"></canvas>
+        </div>
+    </div>
+</div>
+
+<div class="dashboard-row">
+    <div class="dashboard-item dashboard-item--6">
+        <h2 class="dashboard-subheading">UK: Last 7 days</h2>
+        <div class="dashboard-sparklines">
+            <div>
+                <div class="labelled-sparkline">
+                    <canvas width="200" height="50" data-color="#F4A140" data-values="3000 3200 2900 2800 3100 3300 3405" data-title="problems reported"></canvas>
+                </div>
+            </div>
+            <div>
+                <div class="labelled-sparkline">
+                    <canvas width="200" height="50" data-color="#4FADED" data-values="1100 1100 1200 1100 1050 1100 1201" data-title="problems updated"></canvas>
+                </div>
+            </div>
+            <div>
+                <div class="labelled-sparkline">
+                    <canvas width="200" height="50" data-color="#62B356" data-values="1600 1700 1550 1450 1600 1700 1745" data-title="problems marked as fixed"></canvas>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="dashboard-item dashboard-item--6">
+        <form class="dashboard-search">
+            <h2>Show reports in your area</h2>
+            <label for="pc">Enter a UK postcode, or street name and area</label>
+            <p class="form-txt-submit-box">
+                <input type="text" id="pc" class="form-control">
+                <input type="submit" value="Go">
+            </p>
+            <a href="#" class="dashboard-search__geolocate-link">…or use your current location</a>
+        </form>
+    </div>
+</div>
+
+
+<div class="dashboard-row">
+    <div class="dashboard-item dashboard-item--6">
+        <h2 class="dashboard-subheading">Top 5 responsive councils</h2>
+        <p>Average time between a problem being reported and being fixed, in the last 7 days.</p>
+        <table class="dashboard-ranking-table">
+            <tbody>
+                <tr><td>Borsetshire</td><td>25 hours</td></tr>
+                <tr><td>Trumptonshire</td><td>26 hours</td></tr>
+                <tr><td>Hiddley and Pring</td><td>26 hours</td></tr>
+                <tr><td>Oxthorptonshire</td><td>28 hours</td></tr>
+                <tr><td>Lower Biddle</td><td>31 hours</td></tr>
+            </tbody>
+            <tfoot>
+                <tr><td>UK average</td><td>59 hours</td></tr>
+            </tfoot>
+        </table>
+    </div>
+    <div class="dashboard-item dashboard-item--6">
+        <h2 class="dashboard-subheading">Top 5 most used categories</h2>
+        <p>Number of problems reported in each category, in the last 7 days.</p>
+        <table class="dashboard-ranking-table">
+            <tbody>
+                <tr><td>Potholes</td><td>1078 reports</td></tr>
+                <tr><td>Road defects</td><td>520 reports</td></tr>
+                <tr><td>Flytipping</td><td>376 reports</td></tr>
+                <tr><td>Trees and foliage</td><td>152 reports</td></tr>
+                <tr><td>Street lighting</td><td>143 reports</td></tr>
+            </tbody>
+            <tfoot>
+                <tr><td>Other categories</td><td>1136 reports</td></tr>
+            </tfoot>
+        </table>
+    </div>
+</div>
+
+[% INCLUDE 'footer.html' %]
