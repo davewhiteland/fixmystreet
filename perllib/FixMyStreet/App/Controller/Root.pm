@@ -16,6 +16,18 @@ FixMyStreet::App::Controller::Root - Root Controller for FixMyStreet::App
 
 =head1 METHODS
 
+=head2 begin
+
+Any pre-flight checking for all requests
+
+=cut
+sub begin : Private {
+    my ( $self, $c ) = @_;
+
+    $c->forward( 'check_login_required' );
+}
+
+
 =head2 auto
 
 Set up general things for this instance
@@ -123,6 +135,27 @@ sub page_error : Private {
     $c->stash->{template}  = 'errors/generic.html';
     $c->stash->{message} = $error_msg || _('Unknown error');
     $c->response->status($code);
+}
+
+sub check_login_required : Private {
+    my ($self, $c) = @_;
+
+    return if $c->user_exists || !FixMyStreet->config('LOGIN_REQUIRED');
+
+    my $whitelist = [
+        '^auth$',
+        '^auth/',
+        '^js/translation_strings\.[a-zA-Z]{2}(-[a-zA-Z]{2})?\.js',
+        '^[PACQM]{1}/', # various tokens that log the user in
+    ];
+
+    foreach (@$whitelist) {
+        if ( $c->request->path =~ m#$_# ) {
+            return;
+        }
+    }
+
+    $c->detach( '/auth/redirect' );
 }
 
 =head2 end
