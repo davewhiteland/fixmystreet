@@ -198,8 +198,10 @@ $.extend(fixmystreet.set_up, {
             selector = "[data-category='" + category + "']",
             $priorities = $('#problem_priority'),
             $defect_types = $('#defect_type'),
+            $templates = $('#templates_for_public_update'),
             defect_types_data = $("form#report_inspect_form " + selector).data('defect-types') || [],
             priorities_data = $("form#report_inspect_form " + selector).data('priorities') || [],
+            templates_data = $("form#report_inspect_form " + selector).data('templates') || [],
             curr_pri = $priorities.val();
 
         function populateSelect($select, data, label_formatter) {
@@ -216,6 +218,7 @@ $.extend(fixmystreet.set_up, {
 
         populateSelect($priorities, priorities_data, 'priorities_type_format');
         populateSelect($defect_types, defect_types_data, 'defect_type_format');
+        populateSelect($templates, templates_data, 'templates_format');
         $priorities.val(curr_pri);
     });
 
@@ -452,6 +455,9 @@ $.extend(fixmystreet.utils, {
         return data.name;
     },
     priorities_type_format: function(data) {
+        return data.name;
+    },
+    templates_format: function(data) {
         return data.name;
     },
     toggle_shortlist: function(btn, sw, id) {
