@@ -67,16 +67,19 @@ sub generate {
                 $open{$cobrand}{$body}{$type}++;
             }
         }
-        @areas = grep { $_ } split( /,/, $problem{areas} );
-        foreach my $area ( @areas ) {
-            my $duration_str = ( $problem{duration} > 2 * $fourweeks ) ? 'old' : 'new';
-            my $type = ( $problem{duration} > 2 * $fourweeks )
-                ? 'unknown'
-                : ($problem{age} > $fourweeks ? 'older' : 'new');
-            if (FixMyStreet::DB::Result::Problem->fixed_states()->{$problem{state}} || FixMyStreet::DB::Result::Problem->closed_states()->{$problem{state}}) {
-                $fixed{areas}{$area}{$duration_str}++;
-            } else {
-                $open{areas}{$area}{$type}++;
+
+        if ( FixMyStreet->config('AREAS_IN_ALLREPORTS_JSON') ) {
+            @areas = grep { $_ } split( /,/, $problem{areas} );
+            foreach my $area ( @areas ) {
+                my $duration_str = ( $problem{duration} > 2 * $fourweeks ) ? 'old' : 'new';
+                my $type = ( $problem{duration} > 2 * $fourweeks )
+                    ? 'unknown'
+                    : ($problem{age} > $fourweeks ? 'older' : 'new');
+                if (FixMyStreet::DB::Result::Problem->fixed_states()->{$problem{state}} || FixMyStreet::DB::Result::Problem->closed_states()->{$problem{state}}) {
+                    $fixed{areas}{$area}{$duration_str}++;
+                } else {
+                    $open{areas}{$area}{$type}++;
+                }
             }
         }
     }
