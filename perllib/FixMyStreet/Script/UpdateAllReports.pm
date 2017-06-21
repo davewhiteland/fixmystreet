@@ -40,6 +40,7 @@ sub generate {
     while ( my @problem = $problems->next ) {
         my %problem = zip @cols, @problem;
         my @bodies;
+        my @areas;
         my $cobrand = $problem{cobrand};
 
         if ( !$problem{bodies_str} ) {
@@ -64,6 +65,18 @@ sub generate {
                 # Open problems are either unknown, older, or new
                 $open{$body}{$type}++;
                 $open{$cobrand}{$body}{$type}++;
+            }
+        }
+        @areas = grep { $_ } split( /,/, $problem{areas} );
+        foreach my $area ( @areas ) {
+            my $duration_str = ( $problem{duration} > 2 * $fourweeks ) ? 'old' : 'new';
+            my $type = ( $problem{duration} > 2 * $fourweeks )
+                ? 'unknown'
+                : ($problem{age} > $fourweeks ? 'older' : 'new');
+            if (FixMyStreet::DB::Result::Problem->fixed_states()->{$problem{state}} || FixMyStreet::DB::Result::Problem->closed_states()->{$problem{state}}) {
+                $fixed{areas}{$area}{$duration_str}++;
+            } else {
+                $open{areas}{$area}{$type}++;
             }
         }
     }
