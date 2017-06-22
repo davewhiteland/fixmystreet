@@ -184,24 +184,28 @@ $.extend(fixmystreet.set_up, {
   },
 
   report_page_inspect: function() {
-    if (!$('form#report_inspect_form').length) {
+    var $inspect_form = $('form#report_inspect_form');
+
+    if (!$inspect_form.length) {
         return;
     }
 
     // Focus on form
-    $('html,body').scrollTop($('#report_inspect_form').offset().top);
+    $('html,body').scrollTop($inspect_form.offset().top);
+
 
     // On the manage/inspect report form, we already have all the extra inputs
     // in the DOM, we just need to hide/show them as appropriate.
-    $('form#report_inspect_form [name=category]').change(function() {
+    $inspect_form.find('[name=category]').change(function() {
         var category = $(this).val(),
             selector = "[data-category='" + category + "']",
+            entry = $inspect_form.find(selector),
             $priorities = $('#problem_priority'),
             $defect_types = $('#defect_type'),
             $templates = $('#templates_for_public_update'),
-            defect_types_data = $("form#report_inspect_form " + selector).data('defect-types') || [],
-            priorities_data = $("form#report_inspect_form " + selector).data('priorities') || [],
-            templates_data = $("form#report_inspect_form " + selector).data('templates') || [],
+            defect_types_data = entry.data('defect-types') || [],
+            priorities_data = entry.data('priorities') || [],
+            templates_data = entry.data('templates') || [],
             curr_pri = $priorities.val();
 
         function populateSelect($select, data, label_formatter) {
@@ -213,8 +217,8 @@ $.extend(fixmystreet.set_up, {
           });
         }
 
-        $("form#report_inspect_form [data-category]:not(" + selector + ")").addClass("hidden");
-        $("form#report_inspect_form " + selector).removeClass("hidden");
+        $inspect_form.find("[data-category]:not(" + selector + ")").addClass("hidden");
+        entry.removeClass("hidden");
 
         populateSelect($priorities, priorities_data, 'priorities_type_format');
         populateSelect($defect_types, defect_types_data, 'defect_type_format');
@@ -223,9 +227,8 @@ $.extend(fixmystreet.set_up, {
     });
 
     // The inspect form submit button can change depending on the selected state
-    $("#report_inspect_form [name=state]").change(function(){
+    $inspect_form.find("[name=state]").change(function(){
         var state = $(this).val();
-        var $inspect_form = $("#report_inspect_form");
         var $submit = $inspect_form.find("input[type=submit]");
         var value = $submit.attr('data-value-'+state);
         if (value !== undefined) {
@@ -268,8 +271,8 @@ $.extend(fixmystreet.set_up, {
             $("#problem_easting").text(bng.lon.toFixed(1));
             $("#problem_latitude").text(latlon.lat.toFixed(6));
             $("#problem_longitude").text(latlon.lon.toFixed(6));
-            $("form#report_inspect_form input[name=latitude]").val(latlon.lat);
-            $("form#report_inspect_form input[name=longitude]").val(latlon.lon);
+            $inspect_form.find("input[name=latitude]").val(latlon.lat);
+            $inspect_form.find("input[name=longitude]").val(latlon.lon);
         });
     }
 
