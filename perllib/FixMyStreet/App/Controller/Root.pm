@@ -142,6 +142,7 @@ sub check_login_required : Private {
 
     return if $c->user_exists || !FixMyStreet->config('LOGIN_REQUIRED');
 
+    # Whitelisted URL patterns are allowed without login
     my $whitelist = [
         '^auth$',
         '^auth/',
@@ -149,9 +150,22 @@ sub check_login_required : Private {
         '^[PACQM]{1}/', # various tokens that log the user in
     ];
 
+    # Blacklisted URLs immediately 404
+    # This is primarily to work around a Safari bug where the appcache
+    # URL is requested in an infinite loop if it returns a 302 redirect.
+    my $blacklist = [
+        '^offline',
+    ];
+
     foreach (@$whitelist) {
         if ( $c->request->path =~ m#$_# ) {
             return;
+        }
+    }
+
+    foreach (@$blacklist) {
+        if ( $c->request->path =~ m#$_# ) {
+            $c->detach('/page_error_404_not_found', []);
         }
     }
 
