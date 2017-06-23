@@ -83,9 +83,14 @@
     padding-right: 20%;
 
     .label {
-        position: absolute;
-        margin-top: -1em;
+        float: left;
+        margin-right: 2em;
     }
+}
+.js .labelled-line-chart .label {
+    position: absolute;
+    margin-top: -1em;
+    margin-right: 0;
 }
 
 .labelled-sparkline {

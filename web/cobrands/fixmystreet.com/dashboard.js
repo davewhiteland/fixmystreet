@@ -1,6 +1,5 @@
 $(function(){
 
-    Chart.defaults.global.defaultFontFamily = "'MuseoSans', 'Helmet', 'Freesans', sans-serif";
     Chart.defaults.global.defaultFontSize = 16;
 
     var setUpLabelsForChart = function(chart){
@@ -9,18 +8,6 @@ $(function(){
 
         $.each(chart.config.data.datasets, function(datasetIndex, dataset){
             var $label = $('.label[data-datasetIndex="' + datasetIndex + '"]', $parent);
-
-            if($label.length === 0) {
-                var datasetColor = dataset.borderColor;
-                var datasetLabel = dataset.label;
-                var latestValue = dataset.data[ dataset.data.length - 1 ];
-
-                $label = $('<span>').addClass('label').appendTo($parent);
-                $label.attr('data-datasetIndex', datasetIndex);
-                $('<strong>').text(latestValue).css('color', datasetColor).appendTo($label);
-                $('<span>').text(datasetLabel).appendTo($label);
-            }
-
             var latestPoint = chart.getDatasetMeta(datasetIndex).data[ dataset.data.length - 1 ];
             $label.css({
                 top: latestPoint._model.y,
@@ -54,26 +41,14 @@ $(function(){
             data: {
                 labels: labels,
                 datasets: [{
-                    label: title,
                     data: values,
-                    fill: false,
-                    borderWidth: 3,
-                    pointRadius: pointRadiusFinalDot(7, 4),
+                    pointRadius: pointRadiusFinalDot(values.length, 4),
                     pointBackgroundColor: color,
-                    pointHitRadius: 0,
-                    pointBorderWidth: 0,
                     borderColor: color,
                     lineTension: 0
                 }]
             },
             options: {
-                responsive: true,
-                animation: {
-                    duration: 0,
-                    onComplete: function(){
-                        setUpLabelsForChart(this);
-                    }
-                },
                 layout: {
                     padding: {
                         top: 0,
@@ -81,12 +56,6 @@ $(function(){
                         bottom: 0,
                         left: 2
                     }
-                },
-                legend: {
-                    display: false
-                },
-                tooltips: {
-                    enabled: false
                 },
                 scales: {
                     xAxes: [{
@@ -110,70 +79,39 @@ $(function(){
         makeSparkline(
             $(this),
             $(this).data('values'),
-            $(this).data('color'),
-            $(this).data('title')
+            $(this).data('color')
         );
     });
 
-    window.chartAllReports = new Chart($('#chart-all-reports'), {
+    var $allReports = $('#chart-all-reports'),
+        labels = $allReports.data('labels'),
+        data0 = $allReports.data('values-reports'),
+        data1 = $allReports.data('values-fixed');
+    window.chartAllReports = new Chart($allReports, {
         type: 'line',
         data: {
-            labels: [
-                '2008-12-31', '2009-12-31', '2010-12-31', '2011-12-31', '2012-12-31',
-                '2013-12-31', '2014-12-31', '2015-12-31', '2016-12-31', '2017-05-23'
-            ],
+            labels: labels,
             datasets: [{
-                label: 'problems reported',
-                data: [
-                    200, 400, 800, 1600, 3200,
-                    6400, 12800, 25600, 51200, 102400
-                ],
-                fill: false,
-                borderWidth: 3,
-                pointRadius: pointRadiusFinalDot(10, 4),
+                data: data0,
+                pointRadius: pointRadiusFinalDot(data0.length, 4),
                 pointBackgroundColor: '#F4A140',
-                pointHitRadius: 0,
-                pointBorderWidth: 0,
                 borderColor: '#F4A140'
             }, {
-                label: 'reports marked as fixed',
-                data: [
-                    50, 100, 200, 400, 800,
-                    1600, 3200, 6400, 12800, 25600
-                ],
-                fill: false,
-                borderWidth: 3,
-                pointRadius: pointRadiusFinalDot(10, 4),
+                data: data1,
+                pointRadius: pointRadiusFinalDot(data1.length, 4),
                 pointBackgroundColor: '#62B356',
-                pointHitRadius: 0,
-                pointBorderWidth: 0,
                 borderColor: '#62B356'
             }]
         },
         options: {
-            responsive: true,
             animation: {
-                duration: 0,
                 onComplete: function(){
                     setUpLabelsForChart(this);
                 }
             },
-            legend: {
-                display: false
-            },
-            tooltips: {
-                enabled: false
-            },
             scales: {
                 xAxes: [{
-                    type: 'time',
-                    time: {
-                        displayFormats: {
-                            year: 'YYYY'
-                        },
-                        unit: 'year',
-                        round: 'year'
-                    },
+                    type: 'category',
                     gridLines: {
                         display: false
                     }
@@ -182,9 +120,6 @@ $(function(){
                     type: "linear",
                     ticks: {
                         display: false
-                    },
-                    gridLines: {
-                        drawBorder: false
                     }
                 }]
             },

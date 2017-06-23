@@ -1,5 +1,4 @@
 [% extra_js = [
-    version('/vendor/moment.min.js'),
     version('/vendor/chart.min.js'),
     version('/cobrands/fixmystreet.com/dashboard.js')
 ] -%]
@@ -13,7 +12,13 @@
     <div class="dashboard-item dashboard-item--12">
         <h2>UK: All time</h2>
         <div class="labelled-line-chart">
-            <canvas id="chart-all-reports" width="600" height="300"></canvas>
+            <canvas id="chart-all-reports" width="600" height="300"
+                data-labels="[2008,2009,2010,2011,2012,2013,2014,2015,2016,2017]"
+                data-values-reports="[200, 400, 800, 1600, 3200, 6400, 12800, 25600, 51200, 102400]"
+                data-values-fixed="[50, 100, 200, 400, 800, 1600, 3200, 6400, 12800, 25600]"
+                ></canvas>
+            <span class="label" data-datasetindex="0"><strong style="color: #F4A140">102400</strong><span>problems reported</span></span>
+            <span class="label" data-datasetindex="1"><strong style="color: #62B356">25600</strong><span>reports marked as fixed</span></span>
         </div>
     </div>
 </div>
@@ -24,17 +29,23 @@
         <div class="dashboard-sparklines">
             <div>
                 <div class="labelled-sparkline">
-                    <canvas width="200" height="50" data-color="#F4A140" data-values="3000 3200 2900 2800 3100 3300 3405" data-title="problems reported"></canvas>
+                    <canvas width="200" height="50" data-color="#F4A140" data-values="3000 3200 2900 2800 3100 3300 3405"></canvas>
+                    <span class="label" data-datasetindex="0"><strong style="color: #F4A140;">3405</strong>
+                    <span>problems reported</span></span>
                 </div>
             </div>
             <div>
                 <div class="labelled-sparkline">
-                    <canvas width="200" height="50" data-color="#4FADED" data-values="1100 1100 1200 1100 1050 1100 1201" data-title="problems updated"></canvas>
+                    <canvas width="200" height="50" data-color="#4FADED" data-values="1100 1100 1200 1100 1050 1100 1201"></canvas>
+                    <span class="label" data-datasetindex="0"><strong style="color: #4FADED;">1201</strong>
+                    <span>problems updated</span></span>
                 </div>
             </div>
             <div>
                 <div class="labelled-sparkline">
-                    <canvas width="200" height="50" data-color="#62B356" data-values="1600 1700 1550 1450 1600 1700 1745" data-title="problems marked as fixed"></canvas>
+                    <canvas width="200" height="50" data-color="#62B356" data-values="1600 1700 1550 1450 1600 1700 1745"></canvas>
+                    <span class="label" data-datasetindex="0"><strong style="color: #62B356;">1745</strong>
+                    <span>problems marked as fixed</span></span>
                 </div>
             </div>
         </div>
@@ -42,12 +53,12 @@
     <div class="dashboard-item dashboard-item--6">
         <form class="dashboard-search">
             <h2>Show reports in your area</h2>
-            <label for="pc">Enter a UK postcode, or street name and area</label>
+            <label for="pc">[% c.cobrand.enter_postcode_text || loc('Enter a nearby street name and area') %]</label>
             <p class="form-txt-submit-box">
                 <input type="text" id="pc" class="form-control">
                 <input type="submit" value="Go">
             </p>
-            <a href="#" class="dashboard-search__geolocate-link">…or use your current location</a>
+            <a href="#" class="dashboard-search__geolocate-link">…[% loc('or locate me automatically') %]</a>
         </form>
     </div>
 </div>
