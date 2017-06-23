@@ -4,6 +4,7 @@ use namespace::autoclean;
 
 use File::Slurp;
 use JSON::MaybeXS;
+use List::Util qw(sum);
 use List::MoreUtils qw(any);
 use POSIX qw(strcoll);
 use RABX;
@@ -53,6 +54,135 @@ sub index : Path : Args(0) {
         $c->stash->{body} = $body;
         $c->detach( 'redirect_body' );
     }
+
+sub stuff_by_day_or_year {
+    my $period = shift;
+    my $table = shift;
+    my %params = @_;
+    my $results = FixMyStreet::DB->resultset($table)->search({
+        %params
+    }, {
+        select => [ { extract => \"$period from confirmed", -as => $period }, { count => 'id' } ],
+        as => [ $period, 'count' ],
+        group_by => [ $period ],
+    });
+    my %out;
+    while (my $row = $results->next) {
+        my $p = $row->get_column($period);
+        $out{$p} = $row->get_column('count');
+    }
+    return %out;
+}
+
+    my $cur_year = DateTime->now->year;
+    my $min_year = FixMyStreet::DB->resultset('Problem')->search({
+        state => [ FixMyStreet::DB::Result::Problem->visible_states() ],
+    }, {
+        select => [ { min => { extract => \"year from confirmed" } } ],
+        as => [ 'min_year' ],
+    })->first->get_column('min_year');
+
+    my %problems_reported_by_period = stuff_by_day_or_year(
+        'year', 'Problem',
+        state => [ FixMyStreet::DB::Result::Problem->visible_states() ],
+    );
+    my %problems_fixed_by_period = stuff_by_day_or_year(
+        'year', 'Problem',
+        state => [ FixMyStreet::DB::Result::Problem->fixed_states() ],
+    );
+
+    my (@problem_periods, @problems_reported_by_period, @problems_fixed_by_period);
+    foreach ($min_year..$cur_year) {
+        push @problem_periods, $_;
+        push @problems_reported_by_period, ($problems_reported_by_period[-1]||0) + ($problems_reported_by_period{$_}||0);
+        push @problems_fixed_by_period, ($problems_fixed_by_period[-1]||0) + ($problems_fixed_by_period{$_}||0);
+    }
+    $c->stash->{problem_periods} = \@problem_periods;
+    $c->stash->{problems_reported_by_period} = \@problems_reported_by_period;
+    $c->stash->{problems_fixed_by_period} = \@problems_fixed_by_period;
+
+    my %last_seven_days = (
+        problems => [],
+        updated => [],
+        fixed => [],
+    );
+    $c->stash->{last_seven_days} = \%last_seven_days;
+
+    %problems_reported_by_period = stuff_by_day_or_year('day',
+        'Problem',
+        state => [ FixMyStreet::DB::Result::Problem->visible_states() ],
+        confirmed => { '>=', \"current_timestamp-'8 days'::interval" },
+    );
+    %problems_fixed_by_period = stuff_by_day_or_year('day',
+        'Comment',
+        confirmed => { '>=', \"current_timestamp-'8 days'::interval" },
+        problem_state => [ FixMyStreet::DB::Result::Problem->fixed_states() ],
+    );
+
+    # distinct(problem_id)?
+    my %problems_updated_by_period = stuff_by_day_or_year('day',
+        'Comment',
+        confirmed => { '>=', \"current_timestamp-'8 days'::interval" },
+    );
+
+    my $date = DateTime->today->subtract(days => 7);
+    while ($date < DateTime->today) {
+        push @{$last_seven_days{problems}}, $problems_reported_by_period{$date->day} || 0;
+        push @{$last_seven_days{fixed}}, $problems_fixed_by_period{$date->day} || 0;
+        push @{$last_seven_days{updated}}, $problems_updated_by_period{$date->day} || 0;
+        $date->add(days => 1);
+    }
+    $last_seven_days{problems_total} = sum @{$last_seven_days{problems}};
+    $last_seven_days{fixed_total} = sum @{$last_seven_days{fixed}};
+    $last_seven_days{updated_total} = sum @{$last_seven_days{updated}};
+
+    my(@top_five_bodies);
+    $c->stash->{top_five_bodies} = \@top_five_bodies;
+
+        my $col = 'time_to_fix';
+        my $substmt = "select min(id) from comment where me.problem_id=comment.problem_id and problem_state in ('fixed - council', 'fixed - user')";
+        my $comments = $c->model('DB::Comment')->search(
+        {
+            'me.confirmed' => { '>=', \"current_timestamp-'7 days'::interval" },
+            problem_state => ['fixed - user', 'fixed - council'],
+            'me.id' => \"= ($substmt)",
+        }, {
+            select   => [
+                'problem.bodies_str',
+                { count => 'me.id' },
+                { avg => { extract => "epoch from me.confirmed-problem.confirmed" } },
+            ],
+            group_by => [ 'bodies_str' ],
+            order_by => { -desc => 'count' },
+            rows => 5,
+            as       => [ qw/bodies_str state_count time/ ],
+            join     => 'problem'
+        }
+        );
+        while (my $row = $comments->next) {
+            push @top_five_bodies, {
+                name => $row->get_column('bodies_str'),
+                days => int( ($row->get_column('time')||0) / 60 / 60 / 24 + 0.5 ),
+            };
+        }
+
+    my $last_seven_days = FixMyStreet::DB->resultset("Problem")->search({
+        confirmed => { '>=', \"current_timestamp-'7 days'::interval" },
+    })->count;
+    my @top_five_categories = FixMyStreet::DB->resultset("Problem")->search({
+        confirmed => { '>=', \"current_timestamp-'7 days'::interval" },
+    }, {
+        select => [ 'category', { count => 'id' } ],
+        as => [ 'category', 'count' ],
+        group_by => 'category',
+        rows => 5,
+        order_by => { -desc => 'count' },
+    });
+    $c->stash->{top_five_categories} = \@top_five_categories;
+    foreach (@top_five_categories) {
+        $last_seven_days -= $_->get_column('count');
+    }
+    $c->stash->{other_categories} = $last_seven_days;
 
     # Fetch all bodies
     my @bodies = $c->model('DB::Body')->search({
