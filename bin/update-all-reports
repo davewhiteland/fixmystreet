@@ -17,5 +17,14 @@ BEGIN {
 }
 
 use FixMyStreet::Script::UpdateAllReports;
+use Getopt::Long::Descriptive;
 
-FixMyStreet::Script::UpdateAllReports::generate();
+my ($opt, $usage) = describe_options(
+    '%c %o',
+    [ 'areas', "Include area IDs in output JSON." ],
+    [ 'help', "print usage message and exit", { shortcircuit => 1 } ],
+);
+print($usage->text), exit if $opt->help;
+
+
+FixMyStreet::Script::UpdateAllReports::generate($opt->areas);
