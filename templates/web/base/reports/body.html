@@ -39,7 +39,8 @@
 
 <h1 id="reports_heading">
     [% IF ward %]
-    [% ward.name %]<span>, </span><a href="[% body_url %]">[% body.name %]</a>
+    [% ward.name %]<span>, </span>
+    <br><a href="[% body_url %]">[% body.name %]</a>
     [% ELSE %]
     [% body.name %]
     [% END %]
