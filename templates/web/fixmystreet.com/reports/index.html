@@ -1,3 +1,4 @@
+[% USE Number.Format %]
 [% extra_js = [
     version('/vendor/chart.min.js'),
     version('/cobrands/fixmystreet.com/dashboard.js')
@@ -17,8 +18,8 @@
                 data-values-reports="[[% problems_reported_by_period.join(',') %]]"
                 data-values-fixed="[[% problems_fixed_by_period.join(',') %]]"
                 ></canvas>
-            <span class="label" data-datasetindex="0"><strong style="color: #F4A140">[% problems_reported_by_period.last %]</strong><span>problems reported</span></span>
-            <span class="label" data-datasetindex="1"><strong style="color: #62B356">[% problems_fixed_by_period.last %]</strong><span>reports marked as fixed</span></span>
+            <span class="label" data-datasetindex="0"><strong style="color: #F4A140">[% problems_reported_by_period.last | format_number %]</strong><span>problems reported</span></span>
+            <span class="label" data-datasetindex="1"><strong style="color: #62B356">[% problems_fixed_by_period.last | format_number %]</strong><span>reports marked as fixed</span></span>
         </div>
     </div>
 </div>
@@ -30,21 +31,21 @@
             <div>
                 <div class="labelled-sparkline">
                     <canvas width="200" height="50" data-color="#F4A140" data-values="[% last_seven_days.problems.join(' ') %]"></canvas>
-                    <span class="label" data-datasetindex="0"><strong style="color: #F4A140;">[% last_seven_days.problems_total %]</strong>
+                    <span class="label" data-datasetindex="0"><strong style="color: #F4A140;">[% last_seven_days.problems_total | format_number %]</strong>
                     <span>problems reported</span></span>
                 </div>
             </div>
             <div>
                 <div class="labelled-sparkline">
                     <canvas width="200" height="50" data-color="#4FADED" data-values="[% last_seven_days.updated.join(' ') %]"></canvas>
-                    <span class="label" data-datasetindex="0"><strong style="color: #4FADED;">[% last_seven_days.updated_total %]</strong>
+                    <span class="label" data-datasetindex="0"><strong style="color: #4FADED;">[% last_seven_days.updated_total | format_number %]</strong>
                     <span>problems updated</span></span>
                 </div>
             </div>
             <div>
                 <div class="labelled-sparkline">
                     <canvas width="200" height="50" data-color="#62B356" data-values="[% last_seven_days.fixed.join(' ') %]"></canvas>
-                    <span class="label" data-datasetindex="0"><strong style="color: #62B356;">[% last_seven_days.fixed_total %]</strong>
+                    <span class="label" data-datasetindex="0"><strong style="color: #62B356;">[% last_seven_days.fixed_total | format_number %]</strong>
                     <span>problems marked as fixed</span></span>
                 </div>
             </div>
@@ -88,7 +89,7 @@
               [% END %]
             </tbody>
             <tfoot>
-                <tr><td>Other categories</td><td>[% other_categories %] reports</td></tr>
+                <tr><td>Other categories</td><td>[% other_categories | format_number %] reports</td></tr>
             </tfoot>
         </table>
     </div>

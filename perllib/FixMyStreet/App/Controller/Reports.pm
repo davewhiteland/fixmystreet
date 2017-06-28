@@ -139,32 +139,49 @@ sub stuff_by_day_or_year {
     my(@top_five_bodies);
     $c->stash->{top_five_bodies} = \@top_five_bodies;
 
-        my $col = 'time_to_fix';
-        my $substmt = "select min(id) from comment where me.problem_id=comment.problem_id and problem_state in ('fixed - council', 'fixed - user')";
-        my $comments = $c->model('DB::Comment')->search(
-        {
-            'me.confirmed' => { '>=', \"current_timestamp-'7 days'::interval" },
-            problem_state => ['fixed - user', 'fixed - council'],
-            'me.id' => \"= ($substmt)",
-        }, {
-            select   => [
-                'problem.bodies_str',
-                { count => 'me.id' },
-                { avg => { extract => "epoch from me.confirmed-problem.confirmed" } },
-            ],
-            group_by => [ 'bodies_str' ],
-            order_by => { -desc => 'count' },
-            rows => 5,
-            as       => [ qw/bodies_str state_count time/ ],
-            join     => 'problem'
-        }
-        );
-        while (my $row = $comments->next) {
-            push @top_five_bodies, {
-                name => $row->get_column('bodies_str'),
-                days => int( ($row->get_column('time')||0) / 60 / 60 / 24 + 0.5 ),
-            };
-        }
+    my $substmt = "select min(id) from comment where me.problem_id=comment.problem_id and problem_state in ('fixed', 'fixed - council', 'fixed - user')";
+    my $comments = $c->model('DB::Comment')->search(
+    {
+        'me.confirmed' => { '>=', \"current_timestamp-'7 days'::interval" },
+        problem_state => [ FixMyStreet::DB::Result::Problem->fixed_states() ],
+        'problem.bodies_str' => { -not_like => '%,%' },
+        'me.id' => \"= ($substmt)",
+    }, {
+        select   => [
+            'problem.bodies_str',
+            { count => 'me.id' },
+            { avg => { extract => "epoch from me.confirmed-problem.confirmed" } },
+        ],
+        group_by => [ 'bodies_str' ],
+        order_by => 'avg',
+        rows => 5,
+        as       => [ qw/bodies_str state_count time/ ],
+        join     => 'problem'
+    }
+    );
+    while (my $row = $comments->next) {
+        my $name = $c->model('DB::Body')->find($row->get_column('bodies_str'))->name;
+        push @top_five_bodies, {
+            name => $name,
+            days => int( ($row->get_column('time')||0) / 60 / 60 / 24 + 0.5 ),
+        };
+    }
+
+    my $average = $c->model('DB::Comment')->search(
+    {
+        'me.confirmed' => { '>=', \"current_timestamp-'7 days'::interval" },
+        problem_state => [ FixMyStreet::DB::Result::Problem->fixed_states() ],
+        'me.id' => \"= ($substmt)",
+    }, {
+        select   => [
+            { count => 'me.id' },
+            { avg => { extract => "epoch from me.confirmed-problem.confirmed" } },
+        ],
+        as       => [ qw/state_count time/ ],
+        join     => 'problem'
+    }
+    )->first->get_column('time');
+    $c->stash->{average} = int( ($average||0) / 60 / 60 / 24 + 0.5 );
 
     my $last_seven_days = FixMyStreet::DB->resultset("Problem")->search({
         confirmed => { '>=', \"current_timestamp-'7 days'::interval" },
